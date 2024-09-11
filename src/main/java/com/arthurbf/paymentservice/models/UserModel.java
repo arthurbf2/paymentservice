@@ -1,11 +1,13 @@
 package com.arthurbf.paymentservice.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import org.springframework.hateoas.RepresentationModel;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -15,18 +17,53 @@ public class UserModel extends RepresentationModel<UserModel> implements Seriali
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id_user;
+    private UUID user_id;
+
     @NotBlank
     private String name;
+
     @Email
     @Column(unique = true, nullable = false)
     private String email;
+
+    @NotNull
+    @PositiveOrZero
     private BigDecimal balance;
-    private String password;
+
     @NotBlank
+    private String password;
+
+    @Size(min = 11, max = 14)
+    @NotBlank
+    @Column(unique = true) // validation at UserService
     private String cpfcnpj;
+
     @Enumerated(EnumType.STRING)
     private UserType userType;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @OneToMany(mappedBy = "sender")
+    private Set<TransactionModel> sentTransactions = new HashSet<>();
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @OneToMany(mappedBy = "receiver")
+    private Set<TransactionModel> receivedTransactions = new HashSet<>();
+
+    public Set<TransactionModel> getReceivedTransactions() {
+        return receivedTransactions;
+    }
+
+    public void setReceivedTransactions(Set<TransactionModel> receivedTransactions) {
+        this.receivedTransactions = receivedTransactions;
+    }
+
+    public Set<TransactionModel> getSentTransactions() {
+        return sentTransactions;
+    }
+
+    public void setSentTransactions(Set<TransactionModel> sentTransactions) {
+        this.sentTransactions = sentTransactions;
+    }
 
     public enum UserType {
         CUSTOMER,
@@ -57,12 +94,13 @@ public class UserModel extends RepresentationModel<UserModel> implements Seriali
         this.cpfcnpj = cpfcnpj;
     }
 
-    public UUID getId_user() {
-        return id_user;
+
+    public UUID getUser_id() {
+        return user_id;
     }
 
-    public void setId_user(UUID id_user) {
-        this.id_user = id_user;
+    public void setUser_id(UUID user_id) {
+        this.user_id = user_id;
     }
 
     public String getName() {
