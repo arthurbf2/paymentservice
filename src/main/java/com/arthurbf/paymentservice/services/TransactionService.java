@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TransactionService {
@@ -24,7 +25,7 @@ public class TransactionService {
     public TransactionModel createTransaction(TransactionRecordDto transactionRecordDto) {
         var sender = userRepository.findById(transactionRecordDto.senderId())
                 .orElseThrow(() -> new RuntimeException("Paying user not found!"));
-        var receiver = userRepository.findById(transactionRecordDto.senderId())
+        var receiver = userRepository.findById(transactionRecordDto.receiverId())
                 .orElseThrow(() -> new RuntimeException("Receiving user not found!"));
 
         validateTransaction(transactionRecordDto, sender);
@@ -42,7 +43,12 @@ public class TransactionService {
         receiver.getReceivedTransactions().add(transaction);
         userRepository.save(sender);
         userRepository.save(receiver);
+        // send notification
         return transactionRepository.save(transaction);
+    }
+
+    public List<TransactionModel> getAllTransactions() {
+        return transactionRepository.findAll();
     }
 
     private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender) {

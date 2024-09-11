@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -31,5 +32,9 @@ public class UserService {
         user.setReceivedTransactions(new HashSet<>());
         user.setSentTransactions(new HashSet<>());
         return userRepository.save(user);
+    }
+
+    public List<UserModel> getUsers() {
+        return userRepository.findAll();
     }
 }
