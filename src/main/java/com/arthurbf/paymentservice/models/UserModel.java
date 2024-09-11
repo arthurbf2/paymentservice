@@ -3,7 +3,10 @@ package com.arthurbf.paymentservice.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import org.hibernate.validator.constraints.br.CPF;
 import org.springframework.hateoas.RepresentationModel;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -13,11 +16,12 @@ import java.util.UUID;
 @Entity
 @Table(name = "TB_USERS")
 public class UserModel extends RepresentationModel<UserModel> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID user_id;
+    private UUID id;
 
     @NotBlank
     private String name;
@@ -33,7 +37,7 @@ public class UserModel extends RepresentationModel<UserModel> implements Seriali
     @NotBlank
     private String password;
 
-    @Size(min = 11, max = 14)
+    @CPF // just taking CPFs for now
     @NotBlank
     @Column(unique = true) // validation at UserService
     private String cpfcnpj;
@@ -51,6 +55,22 @@ public class UserModel extends RepresentationModel<UserModel> implements Seriali
 
     public Set<TransactionModel> getReceivedTransactions() {
         return receivedTransactions;
+    }
+
+    public boolean isTransferAllowedForUser() {
+        return this.userType.equals(UserType.CUSTOMER);
+    }
+
+    public boolean isBalancerEqualOrGreatherThan(BigDecimal value) {
+        return this.balance.doubleValue() >= value.doubleValue();
+    }
+
+    public void debit(BigDecimal value) {
+        this.balance = this.balance.subtract(value);
+    }
+
+    public void credit(BigDecimal value) {
+        this.balance = this.balance.add(value);
     }
 
     public void setReceivedTransactions(Set<TransactionModel> receivedTransactions) {
@@ -94,13 +114,20 @@ public class UserModel extends RepresentationModel<UserModel> implements Seriali
         this.cpfcnpj = cpfcnpj;
     }
 
-
-    public UUID getUser_id() {
-        return user_id;
+    public @NotBlank String getPassword() {
+        return password;
     }
 
-    public void setUser_id(UUID user_id) {
-        this.user_id = user_id;
+    public void setPassword(@NotBlank String password) {
+        this.password = password;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getName() {

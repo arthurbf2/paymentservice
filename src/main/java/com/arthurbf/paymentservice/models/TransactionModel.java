@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.hateoas.RepresentationModel;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,11 +14,12 @@ import java.util.UUID;
 @Entity
 @Table(name = "TB_TRANSACTIONS")
 public class TransactionModel extends RepresentationModel<TransactionModel> implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID transaction_id;
+    private UUID id;
 
     @NotNull
     @Positive
@@ -43,12 +45,12 @@ public class TransactionModel extends RepresentationModel<TransactionModel> impl
         PENDING
     }
 
-    public UUID getTransaction_id() {
-        return transaction_id;
+    public UUID getId() {
+        return id;
     }
 
-    public void setTransaction_id(UUID transaction_id) {
-        this.transaction_id = transaction_id;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public @NotNull @Positive BigDecimal getAmount() {
