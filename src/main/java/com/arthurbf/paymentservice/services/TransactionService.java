@@ -1,6 +1,9 @@
 package com.arthurbf.paymentservice.services;
 
 import com.arthurbf.paymentservice.dtos.TransactionRecordDto;
+import com.arthurbf.paymentservice.exceptions.InsufficientBalanceException;
+import com.arthurbf.paymentservice.exceptions.SelfTransferException;
+import com.arthurbf.paymentservice.exceptions.TransferNotAllowedForUserTypeException;
 import com.arthurbf.paymentservice.models.TransactionModel;
 import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.repositories.TransactionRepository;
@@ -27,8 +30,7 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("Paying user not found!"));
         var receiver = userRepository.findById(transactionRecordDto.receiverId())
                 .orElseThrow(() -> new RuntimeException("Receiving user not found!"));
-
-        validateTransaction(transactionRecordDto, sender);
+        validateTransaction(transactionRecordDto, sender, receiver);
         sender.debit(transactionRecordDto.amount());
         receiver.credit(transactionRecordDto.amount());
 
@@ -47,16 +49,15 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    public List<TransactionModel> getAllTransactions() {
-        return transactionRepository.findAll();
-    }
-
-    private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender) {
+    private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender, UserModel receiver) {
+        if (sender.equals(receiver)) {
+            throw new SelfTransferException();
+        }
         if (!sender.isBalancerEqualOrGreatherThan(transactionRecordDto.amount())) {
-            throw new RuntimeException("Insufficient balance");
+            throw new InsufficientBalanceException();
         }
         if (!sender.isTransferAllowedForUser()){
-            throw new RuntimeException("This user type is not allowed to transfer");
+            throw new TransferNotAllowedForUserTypeException();
         }
     }
 }

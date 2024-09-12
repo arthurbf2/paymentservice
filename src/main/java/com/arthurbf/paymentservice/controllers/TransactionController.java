@@ -25,9 +25,4 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.createTransaction(transactionRecordDto));
     }
 
-    @GetMapping("/transactions")
-    public ResponseEntity<List<TransactionModel>> getTransactions() {
-        return ResponseEntity.status(HttpStatus.OK).body(transactionService.getAllTransactions());
-    }
-
 }

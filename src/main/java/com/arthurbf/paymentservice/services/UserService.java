@@ -1,6 +1,7 @@
 package com.arthurbf.paymentservice.services;
 
 import com.arthurbf.paymentservice.dtos.UserRecordDto;
+import com.arthurbf.paymentservice.exceptions.UserAlreadyExistsException;
 import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,7 +22,7 @@ public class UserService {
     public UserModel saveUser(UserRecordDto userRecordDto) {
         var userDb = userRepository.findByCpfcnpjOrEmail(userRecordDto.cpfcnpj(), userRecordDto.email());
         if (userDb.isPresent())
-            throw new RuntimeException("User already exists with the provided cpfcnpj or email.");
+            throw new UserAlreadyExistsException(userRecordDto.cpfcnpj());
         UserModel user = new UserModel();
         user.setName(userRecordDto.name());
         user.setEmail(userRecordDto.email());
