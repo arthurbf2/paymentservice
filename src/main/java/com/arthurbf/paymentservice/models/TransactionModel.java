@@ -25,11 +25,11 @@ public class TransactionModel extends RepresentationModel<TransactionModel> impl
     @Positive
     private BigDecimal amount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne//(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
     private UserModel sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne//(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
     private UserModel receiver;
 

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class TransactionService {
@@ -49,8 +51,16 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
+    public List<TransactionModel> getUserTransactions(UUID id) {
+        return transactionRepository.findAllByUserId(id);
+    }
+
+    public Optional<TransactionModel> getTransaction(UUID id) {
+        return transactionRepository.findById(id);
+    }
+
     private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender, UserModel receiver) {
-        if (sender.equals(receiver)) {
+        if (sender.getId().equals(receiver.getId())) {
             throw new SelfTransferException();
         }
         if (!sender.isBalancerEqualOrGreatherThan(transactionRecordDto.amount())) {

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -21,8 +23,9 @@ public class UserService {
     @Transactional
     public UserModel saveUser(UserRecordDto userRecordDto) {
         var userDb = userRepository.findByCpfcnpjOrEmail(userRecordDto.cpfcnpj(), userRecordDto.email());
-        if (userDb.isPresent())
+        if (userDb.isPresent()) {
             throw new UserAlreadyExistsException(userRecordDto.cpfcnpj());
+        }
         UserModel user = new UserModel();
         user.setName(userRecordDto.name());
         user.setEmail(userRecordDto.email());
@@ -33,6 +36,15 @@ public class UserService {
         user.setReceivedTransactions(new HashSet<>());
         user.setSentTransactions(new HashSet<>());
         return userRepository.save(user);
+    }
+
+    public boolean isValidUser(UUID id) {
+        Optional<UserModel> user = getUser(id);
+        return user.isPresent();
+    }
+
+    public Optional<UserModel> getUser(UUID id) {
+        return userRepository.findById(id);
     }
 
     public List<UserModel> getUsers() {
