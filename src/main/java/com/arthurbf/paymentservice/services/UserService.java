@@ -25,7 +25,7 @@ public class UserService {
     public UserModel saveUser(UserRecordDto userRecordDto) {
         var userDb = userRepository.findByCpfcnpjOrEmail(userRecordDto.cpfcnpj(), userRecordDto.email());
         if (userDb.isPresent()) {
-            throw new UserAlreadyExistsException(userRecordDto.cpfcnpj());
+            throw new UserAlreadyExistsException();
         }
         UserModel user = new UserModel();
         user.setName(userRecordDto.name());

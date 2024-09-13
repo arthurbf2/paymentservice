@@ -1,6 +1,7 @@
 package com.arthurbf.paymentservice.controllers;
 
 import com.arthurbf.paymentservice.dtos.UserRecordDto;
+import com.arthurbf.paymentservice.exceptions.UserAlreadyExistsException;
 import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.services.UserService;
 import org.springframework.http.HttpStatus;
