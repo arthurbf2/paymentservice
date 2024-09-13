@@ -2,6 +2,7 @@ package com.arthurbf.paymentservice.controllers;
 
 import com.arthurbf.paymentservice.dtos.TransactionRecordDto;
 import com.arthurbf.paymentservice.models.TransactionModel;
+import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.services.TransactionService;
 import com.arthurbf.paymentservice.services.UserService;
 import jakarta.validation.Valid;
@@ -41,6 +42,9 @@ public class TransactionController {
         for (TransactionModel transaction : transactions) {
             UUID transacId = transaction.getId();
             transaction.add(linkTo(methodOn(TransactionController.class).getOneTransaction(id, transacId)).withSelfRel());
+            transaction.add(linkTo(methodOn(TransactionController.class).getSentTransactions(id)).withRel("sent transactions"));
+            transaction.add(linkTo(methodOn(TransactionController.class).getReceivedTransactions(id)).withRel("received transactions"));
+            setSenderReceiverLinks(transaction);
         }
         return ResponseEntity.status(HttpStatus.OK).body(transactions);
     }
@@ -52,6 +56,8 @@ public class TransactionController {
         if (transaction.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction not found");
         }
+        transaction.get().add(linkTo(methodOn(TransactionController.class).getAllUserTransactions(userId)).withRel("all transactions"));
+        setSenderReceiverLinks(transaction.get());
         return ResponseEntity.status(HttpStatus.OK).body(transaction);
     }
 
@@ -62,6 +68,13 @@ public class TransactionController {
         if (transactions.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
+        for (TransactionModel transaction : transactions) {
+            UUID transacId = transaction.getId();
+            transaction.add(linkTo(methodOn(TransactionController.class).getOneTransaction(userId, transacId)).withSelfRel());
+            transaction.add(linkTo(methodOn(TransactionController.class).getAllUserTransactions(userId)).withRel("all transactions"));
+            transaction.add(linkTo(methodOn(TransactionController.class).getReceivedTransactions(userId)).withRel("received transactions"));
+            setSenderReceiverLinks(transaction);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(transactions);
     }
     @GetMapping("/users/{userId}/transactions/received")
@@ -71,7 +84,23 @@ public class TransactionController {
         if (transactions.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
+        for (TransactionModel transaction : transactions) {
+            UUID transacId = transaction.getId();
+            transaction.add(linkTo(methodOn(TransactionController.class).getOneTransaction(userId, transacId)).withSelfRel());
+            transaction.add(linkTo(methodOn(TransactionController.class).getAllUserTransactions(userId)).withRel("all transactions"));
+            transaction.add(linkTo(methodOn(TransactionController.class).getSentTransactions(userId)).withRel("sent transactions"));
+            setSenderReceiverLinks(transaction);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(transactions);
+    }
+
+    public void setSenderReceiverLinks(TransactionModel transaction) {
+        UserModel sender = transaction.getSender();
+        UserModel receiver = transaction.getReceiver();
+        if (sender.getLinks().isEmpty())
+            sender.add(linkTo(methodOn(UserController.class).getUser(sender.getId())).withSelfRel());
+        if (receiver.getLinks().isEmpty())
+            receiver.add(linkTo(methodOn(UserController.class).getUser(receiver.getId())).withSelfRel());
     }
 
 }
