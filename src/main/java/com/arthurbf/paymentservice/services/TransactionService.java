@@ -4,6 +4,7 @@ import com.arthurbf.paymentservice.dtos.TransactionRecordDto;
 import com.arthurbf.paymentservice.exceptions.InsufficientBalanceException;
 import com.arthurbf.paymentservice.exceptions.SelfTransferException;
 import com.arthurbf.paymentservice.exceptions.TransferNotAllowedForUserTypeException;
+import com.arthurbf.paymentservice.exceptions.UserNotFoundException;
 import com.arthurbf.paymentservice.models.TransactionModel;
 import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.repositories.TransactionRepository;
@@ -29,9 +30,9 @@ public class TransactionService {
     @Transactional
     public TransactionModel createTransaction(TransactionRecordDto transactionRecordDto) {
         var sender = userRepository.findById(transactionRecordDto.senderId())
-                .orElseThrow(() -> new RuntimeException("Paying user not found!"));
+                .orElseThrow(UserNotFoundException::new);
         var receiver = userRepository.findById(transactionRecordDto.receiverId())
-                .orElseThrow(() -> new RuntimeException("Receiving user not found!"));
+                .orElseThrow(UserNotFoundException::new);
         validateTransaction(transactionRecordDto, sender, receiver);
         sender.debit(transactionRecordDto.amount());
         receiver.credit(transactionRecordDto.amount());
@@ -51,8 +52,16 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    public List<TransactionModel> getUserTransactions(UUID id) {
-        return transactionRepository.findAllByUserId(id);
+    public List<TransactionModel> getUserTransactions(UUID userId) {
+        return transactionRepository.findAllByUserId(userId);
+    }
+
+    public List<TransactionModel> getSentTransactions(UUID userId) {
+        return transactionRepository.findAllSentByUserId(userId);
+    }
+
+    public List<TransactionModel> getReceivedTransactions(UUID userId) {
+        return transactionRepository.findAllReceivedByUserId(userId);
     }
 
     public Optional<TransactionModel> getTransaction(UUID id) {
@@ -60,6 +69,7 @@ public class TransactionService {
     }
 
     private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender, UserModel receiver) {
+
         if (sender.getId().equals(receiver.getId())) {
             throw new SelfTransferException();
         }

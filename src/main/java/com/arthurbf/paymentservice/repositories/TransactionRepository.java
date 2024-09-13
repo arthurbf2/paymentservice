@@ -13,4 +13,10 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<TransactionModel, UUID> {
     @Query("SELECT t FROM TransactionModel t WHERE t.sender.id = :id OR t.receiver.id = :id")
     List<TransactionModel> findAllByUserId(@Param("id") UUID id);
+
+    @Query("SELECT t FROM TransactionModel t WHERE t.sender.id = :id")
+    List<TransactionModel> findAllSentByUserId(@Param("id") UUID id);
+
+    @Query("SELECT t FROM TransactionModel t WHERE t.receiver.id = :id")
+    List<TransactionModel> findAllReceivedByUserId(@Param("id") UUID id);
 }

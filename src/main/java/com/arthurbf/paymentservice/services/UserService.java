@@ -2,6 +2,7 @@ package com.arthurbf.paymentservice.services;
 
 import com.arthurbf.paymentservice.dtos.UserRecordDto;
 import com.arthurbf.paymentservice.exceptions.UserAlreadyExistsException;
+import com.arthurbf.paymentservice.exceptions.UserNotFoundException;
 import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -38,9 +39,11 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public boolean isValidUser(UUID id) {
+    public void validateUser(UUID id) {
         Optional<UserModel> user = getUser(id);
-        return user.isPresent();
+        if (user.isEmpty()) {
+            throw new UserNotFoundException();
+        }
     }
 
     public Optional<UserModel> getUser(UUID id) {

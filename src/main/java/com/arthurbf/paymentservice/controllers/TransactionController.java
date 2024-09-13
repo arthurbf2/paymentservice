@@ -19,10 +19,8 @@ import java.util.UUID;
 public class TransactionController {
 
     private final TransactionService transactionService;
-    private final UserService userService;
-    public TransactionController(TransactionService transactionService, UserService userService) {
+    public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
-        this.userService = userService;
     }
 
     @PostMapping("/transactions")
