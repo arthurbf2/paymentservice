@@ -1,5 +1,6 @@
-package com.arthurbf.paymentservice.exceptions;
+package com.arthurbf.paymentservice.infra;
 
+import com.arthurbf.paymentservice.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -32,5 +33,10 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(InsufficientBalanceException.class)
     private ResponseEntity<String> insufficientBalanceHandler(InsufficientBalanceException exception) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(exception.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedTransactionException.class)
+    private ResponseEntity<String> unauthorizedTransferHandler(UnauthorizedTransactionException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exception.getMessage());
     }
 }
