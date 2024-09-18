@@ -7,13 +7,7 @@ import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.repositories.TransactionRepository;
 import com.arthurbf.paymentservice.repositories.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
