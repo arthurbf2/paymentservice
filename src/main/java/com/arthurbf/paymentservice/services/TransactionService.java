@@ -1,5 +1,6 @@
 package com.arthurbf.paymentservice.services;
 
+import com.arthurbf.paymentservice.dtos.EmailDetailDto;
 import com.arthurbf.paymentservice.dtos.TransactionRecordDto;
 import com.arthurbf.paymentservice.exceptions.*;
 import com.arthurbf.paymentservice.models.TransactionModel;
@@ -7,7 +8,11 @@ import com.arthurbf.paymentservice.models.UserModel;
 import com.arthurbf.paymentservice.repositories.TransactionRepository;
 import com.arthurbf.paymentservice.repositories.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +23,16 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final AuthorizationService authService;
+    private final RabbitTemplate rabbitTemplate;
+    @Value(value="${broker.queue.email.name}")
+    private String routingKey;
 
-    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, AuthorizationService authService) {
+
+    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, AuthorizationService authService, RabbitTemplate rabbitTemplate) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.authService = authService;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -48,8 +58,15 @@ public class TransactionService {
         receiver.getReceivedTransactions().add(transaction);
         userRepository.save(sender);
         userRepository.save(receiver);
-        // send notification
+        sendEmailNotification(sender, receiver, transactionRecordDto.amount());
         return transactionRepository.save(transaction);
+    }
+
+    public void sendEmailNotification(UserModel sender, UserModel receiver, BigDecimal amount) {
+        String subject = "You have received a transfer!";
+        String body = String.format("Hello %s, you have received %.2f from %s(%s).", receiver.getName(), amount, sender.getName(), sender.getEmail());
+        var emailDto = new EmailDetailDto(sender.getEmail(), subject, receiver.getEmail(), body);
+        rabbitTemplate.convertAndSend("", routingKey, emailDto);
     }
 
     private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender, UserModel receiver) {
