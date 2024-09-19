@@ -21,14 +21,12 @@ import java.util.UUID;
 @Service
 public class TransactionService {
     private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
     private final AuthorizationService authService;
     private final EmailService emailService;
     private final UserService userService;
 
-    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, AuthorizationService authService, EmailService emailService, UserService userService) {
+    public TransactionService(TransactionRepository transactionRepository, AuthorizationService authService, EmailService emailService, UserService userService) {
         this.transactionRepository = transactionRepository;
-        this.userRepository = userRepository;
         this.authService = authService;
         this.emailService = emailService;
         this.userService = userService;

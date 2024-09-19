@@ -40,7 +40,8 @@ public class UserService {
         user.setUserType(userRecordDto.userType());
         user.setReceivedTransactions(new HashSet<>());
         user.setSentTransactions(new HashSet<>());
-        return userRepository.save(user);
+        saveUser(user);
+        return user;
     }
 
     public void validateUser(UUID id) {
