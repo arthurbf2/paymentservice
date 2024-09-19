@@ -23,23 +23,22 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final AuthorizationService authService;
-    private final RabbitTemplate rabbitTemplate;
-    @Value(value="${broker.queue.email.name}")
-    private String routingKey;
+    private final EmailService emailService;
+    private final UserService userService;
 
-
-    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, AuthorizationService authService, RabbitTemplate rabbitTemplate) {
+    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository, AuthorizationService authService, EmailService emailService, UserService userService) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.authService = authService;
-        this.rabbitTemplate = rabbitTemplate;
+        this.emailService = emailService;
+        this.userService = userService;
     }
 
     @Transactional
     public TransactionModel createTransaction(TransactionRecordDto transactionRecordDto) {
-        var sender = userRepository.findById(transactionRecordDto.senderId())
+        var sender = userService.getUser(transactionRecordDto.senderId())
                 .orElseThrow(UserNotFoundException::new);
-        var receiver = userRepository.findById(transactionRecordDto.receiverId())
+        var receiver = userService.getUser(transactionRecordDto.receiverId())
                 .orElseThrow(UserNotFoundException::new);
         validateTransaction(transactionRecordDto, sender, receiver);
         if (!authService.authorizeTransaction(sender, transactionRecordDto.amount()))
@@ -51,22 +50,15 @@ public class TransactionService {
         transaction.setSender(sender);
         transaction.setReceiver(receiver);
         transaction.setAmount(transactionRecordDto.amount());
-        transaction.setStatus(TransactionModel.Status.SUCCESS); //TODO: check for authorization
+        transaction.setStatus(TransactionModel.Status.SUCCESS);
         transaction.setTransactionDate(LocalDateTime.now());
 
         sender.getSentTransactions().add(transaction);
         receiver.getReceivedTransactions().add(transaction);
-        userRepository.save(sender);
-        userRepository.save(receiver);
-        sendEmailNotification(sender, receiver, transactionRecordDto.amount());
+        userService.saveUser(sender);
+        userService.saveUser(receiver);
+        emailService.sendEmailNotification(sender, receiver, transactionRecordDto.amount());
         return transactionRepository.save(transaction);
-    }
-
-    public void sendEmailNotification(UserModel sender, UserModel receiver, BigDecimal amount) {
-        String subject = "You have received a transfer!";
-        String body = String.format("Hello %s, you have received %.2f from %s(%s).", receiver.getName(), amount, sender.getName(), sender.getEmail());
-        var emailDto = new EmailDetailDto(sender.getEmail(), subject, receiver.getEmail(), body);
-        rabbitTemplate.convertAndSend("", routingKey, emailDto);
     }
 
     private void validateTransaction(TransactionRecordDto transactionRecordDto, UserModel sender, UserModel receiver) {

@@ -21,8 +21,12 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public void saveUser(UserModel user) {
+        userRepository.save(user);
+    }
+
     @Transactional
-    public UserModel saveUser(UserRecordDto userRecordDto) {
+    public UserModel createUser(UserRecordDto userRecordDto) {
         var userDb = userRepository.findByCpfcnpjOrEmail(userRecordDto.cpfcnpj(), userRecordDto.email());
         if (userDb.isPresent()) {
             throw new UserAlreadyExistsException();
