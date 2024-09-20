@@ -39,18 +39,19 @@ public class TransactionService {
         var receiver = userService.getUser(transactionRecordDto.receiverId())
                 .orElseThrow(UserNotFoundException::new);
         validateTransaction(transactionRecordDto, sender, receiver);
-        if (!authService.authorizeTransaction(sender, transactionRecordDto.amount()))
-            throw new UnauthorizedTransactionException();
-        sender.debit(transactionRecordDto.amount());
-        receiver.credit(transactionRecordDto.amount());
-
         var transaction = new TransactionModel();
         transaction.setSender(sender);
         transaction.setReceiver(receiver);
         transaction.setAmount(transactionRecordDto.amount());
-        transaction.setStatus(TransactionModel.Status.SUCCESS);
+        transaction.setStatus(TransactionModel.Status.PENDING);
         transaction.setTransactionDate(LocalDateTime.now());
-
+        if (!authService.authorizeTransaction(sender, transactionRecordDto.amount())) {
+            transaction.setStatus(TransactionModel.Status.FAILED);
+            throw new UnauthorizedTransactionException();
+        }
+        sender.debit(transactionRecordDto.amount());
+        receiver.credit(transactionRecordDto.amount());
+        transaction.setStatus(TransactionModel.Status.SUCCESS);
         sender.getSentTransactions().add(transaction);
         receiver.getReceivedTransactions().add(transaction);
         userService.saveUser(sender);
