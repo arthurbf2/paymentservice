@@ -1,4 +1,4 @@
-**Payment Service API** 
+# Payment Service API 
 
 API feita com Java e Spring Boot. Baseado no desafio [pickpay backend](https://github.com/PicPay/picpay-desafio-backend). 
 
